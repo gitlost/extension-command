@@ -137,8 +137,11 @@ Feature: Manage WordPress themes
 
   Scenario: Get the path of an installed theme
     Given a WP install
+    And download:
+      | path                     | url                                                  |
+      | {CACHE_DIR}/p2.1.4.1.zip | https://downloads.wordpress.org/theme/p2.1.4.1.zip   |
 
-    When I run `wp theme install p2`
+    When I run `wp theme install {CACHE_DIR}/p2.1.4.1.zip`
     Then STDOUT should not be empty
 
     When I run `wp theme path p2 --dir`
@@ -149,8 +152,11 @@ Feature: Manage WordPress themes
 
   Scenario: Activate an already active theme
     Given a WP install
+    And download:
+      | path                     | url                                                  |
+      | {CACHE_DIR}/p2.1.4.1.zip | https://downloads.wordpress.org/theme/p2.1.4.1.zip   |
 
-    When I run `wp theme install p2`
+    When I run `wp theme install {CACHE_DIR}/p2.1.4.1.zip`
     Then STDOUT should not be empty
 
     When I run `wp theme activate p2`
@@ -167,12 +173,12 @@ Feature: Manage WordPress themes
 
   Scenario: Install a theme when the theme directory doesn't yet exist
     Given a WP install
+    And download:
+      | path                     | url                                                  |
+      | {CACHE_DIR}/p2.1.4.1.zip | https://downloads.wordpress.org/theme/p2.1.4.1.zip   |
+    And a non-existent wp-content/themes directory
 
-    When I run `rm -rf wp-content/themes`
-    And I run `if test -d wp-content/themes; then echo "fail"; fi`
-    Then STDOUT should be empty
-
-    When I run `wp theme install p2 --activate`
+    When I run `wp theme install {CACHE_DIR}/p2.1.4.1.zip --activate`
     Then STDOUT should not be empty
 
     When I run `wp theme list --fields=name,status`
@@ -182,29 +188,30 @@ Feature: Manage WordPress themes
 
   Scenario: Attempt to activate or fetch a broken theme
     Given a WP install
+    And download:
+      | path                     | url                                                  |
+      | {CACHE_DIR}/p2.1.4.1.zip | https://downloads.wordpress.org/theme/p2.1.4.1.zip   |
+    And an empty wp-content/themes/p2 directory
 
-    When I run `mkdir -pv wp-content/themes/myth`
-    Then the wp-content/themes/myth directory should exist
-
-    When I try `wp theme activate myth`
+    When I try `wp theme activate p2`
     Then STDERR should contain:
       """
       Error: Stylesheet is missing.
       """
 
-    When I try `wp theme get myth`
+    When I try `wp theme get p2`
     Then STDERR should contain:
       """
       Error: Stylesheet is missing.
       """
 
-    When I try `wp theme status myth`
+    When I try `wp theme status p2`
     Then STDERR should be:
       """
       Error: Stylesheet is missing.
       """
 
-    When I run `wp theme install myth --force`
+    When I run `wp theme install {CACHE_DIR}/p2.1.4.1.zip --force`
     Then STDOUT should contain:
       """
       Theme updated successfully.
@@ -212,72 +219,75 @@ Feature: Manage WordPress themes
 
   Scenario: Enabling and disabling a theme
   	Given a WP multisite install
-    And I run `wp theme install jolene`
-    And I run `wp theme install biker`
+    And download:
+      | path                            | url                                                       |
+      | {CACHE_DIR}/espied.1.2.2.zip    | https://downloads.wordpress.org/theme/espied.1.2.2.zip    |
+      | {CACHE_DIR}/sidespied.1.0.3.zip | https://downloads.wordpress.org/theme/sidespied.1.0.3.zip |
+    And I run `wp theme install {CACHE_DIR}/espied.1.2.2.zip {CACHE_DIR}/sidespied.1.0.3.zip`
 
     When I try `wp option get allowedthemes`
     Then the return code should be 1
     And STDERR should be empty
 
-    When I run `wp theme enable biker`
+    When I run `wp theme enable sidespied`
     Then STDOUT should contain:
        """
-       Success: Enabled the 'Biker' theme.
+       Success: Enabled the 'Sidespied' theme.
        """
 
     When I run `wp option get allowedthemes`
     Then STDOUT should contain:
        """
-       'biker' => true
+       'sidespied' => true
        """
 
-    When I run `wp theme disable biker`
+    When I run `wp theme disable sidespied`
     Then STDOUT should contain:
        """
-       Success: Disabled the 'Biker' theme.
+       Success: Disabled the 'Sidespied' theme.
        """
 
     When I run `wp option get allowedthemes`
     Then STDOUT should not contain:
        """
-       'biker' => true
+       'sidespied' => true
        """
 
-    When I run `wp theme enable biker --activate`
+    When I run `wp theme enable sidespied --activate`
     Then STDOUT should contain:
        """
-       Success: Enabled the 'Biker' theme.
-       Success: Switched to 'Biker' theme.
+       Success: Enabled the 'Sidespied' theme.
+       Success: Switched to 'Sidespied' theme.
        """
 
     When I run `wp network-meta get 1 allowedthemes`
     Then STDOUT should not contain:
        """
-       'biker' => true
+       'sidespied' => true
        """
 
-    When I run `wp theme enable biker --network`
+    When I run `wp theme enable sidespied --network`
     Then STDOUT should contain:
        """
-       Success: Network enabled the 'Biker' theme.
+       Success: Network enabled the 'Sidespied' theme.
        """
 
     When I run `wp network-meta get 1 allowedthemes`
     Then STDOUT should contain:
        """
-       'biker' => true
+       'sidespied' => true
        """
 
-    When I run `wp theme disable biker --network`
+    When I run `wp theme disable sidespied --network`
     Then STDOUT should contain:
        """
-       Success: Network disabled the 'Biker' theme.
+       Success: Network disabled the 'Sidespied' theme.
        """
 
     When I run `wp network-meta get 1 allowedthemes`
     Then STDOUT should not contain:
        """
-       'biker' => true
+       'sidespied' => true
        """
 
   Scenario: Enabling and disabling a theme without multisite
@@ -311,98 +321,111 @@ Feature: Manage WordPress themes
 
   Scenario: Install and attempt to activate a child theme without its parent
     Given a WP install
-    And I run `wp theme install biker`
-    And I run `rm -rf wp-content/themes/jolene`
+    And download:
+      | path                            | url                                                       |
+      | {CACHE_DIR}/espied.1.2.2.zip    | https://downloads.wordpress.org/theme/espied.1.2.2.zip    |
+      | {CACHE_DIR}/sidespied.1.0.3.zip | https://downloads.wordpress.org/theme/sidespied.1.0.3.zip |
 
-    When I try `wp theme activate biker`
+    When I run `wp theme install {CACHE_DIR}/sidespied.1.0.3.zip`
+    Then the wp-content/themes/espied directory should exist
+
+    Given a non-existent wp-content/themes/espied directory
+    When I try `wp theme activate sidespied`
     Then STDERR should contain:
       """
-      Error: The parent theme is missing. Please install the "jolene" parent theme.
+      Error: The parent theme is missing. Please install the "espied" parent theme.
       """
 
   Scenario: List an active theme with its parent
     Given a WP install
-    And I run `wp theme install jolene`
-    And I run `wp theme install --activate biker`
+    And download:
+      | path                            | url                                                       |
+      | {CACHE_DIR}/espied.1.2.2.zip    | https://downloads.wordpress.org/theme/espied.1.2.2.zip    |
+      | {CACHE_DIR}/sidespied.1.0.3.zip | https://downloads.wordpress.org/theme/sidespied.1.0.3.zip |
+    And I run `wp theme install {CACHE_DIR}/espied.1.2.2.zip`
+    And I run `wp theme install --activate {CACHE_DIR}/sidespied.1.0.3.zip`
 
     When I run `wp theme list --fields=name,status`
     Then STDOUT should be a table containing rows:
       | name          | status   |
-      | biker         | active   |
-      | jolene        | parent   |
+      | sidespied     | active   |
+      | espied        | parent   |
 
   Scenario: When updating a theme --format should be the same when using --dry-run
     Given a WP install
 
-    When I run `wp theme install --force twentytwelve --version=1.0`
+    When I run `wp theme install --force p2 --version=1.4.1`
     Then STDOUT should not be empty
 
-    When I run `wp theme list --name=twentytwelve --field=update_version`
+    When I run `wp theme list --name=p2 --field=update_version`
     And save STDOUT as {UPDATE_VERSION}
 
-    When I run `wp theme update twentytwelve --format=summary --dry-run`
+    When I run `wp theme update p2 --format=summary --dry-run`
     Then STDOUT should contain:
       """
       Available theme updates:
-      Twenty Twelve update from version 1.0 to version {UPDATE_VERSION}
+      P2 update from version 1.4.1 to version {UPDATE_VERSION}
       """
 
-    When I run `wp theme update twentytwelve --format=json --dry-run`
+    When I run `wp theme update p2 --format=json --dry-run`
     Then STDOUT should be JSON containing:
       """
-      [{"name":"twentytwelve","status":"inactive","version":"1.0","update_version":"{UPDATE_VERSION}"}]
+      [{"name":"p2","status":"inactive","version":"1.4.1","update_version":"{UPDATE_VERSION}"}]
       """
 
-    When I run `wp theme update twentytwelve --format=csv --dry-run`
+    When I run `wp theme update p2 --format=csv --dry-run`
     Then STDOUT should contain:
       """
       name,status,version,update_version
-      twentytwelve,inactive,1.0,{UPDATE_VERSION}
+      p2,inactive,1.4.1,{UPDATE_VERSION}
       """
 
   Scenario: Check json and csv formats when updating a theme
     Given a WP install
 
-    When I run `wp theme install --force twentytwelve --version=1.0`
+    When I run `wp theme install --force p2 --version=1.4.1`
     Then STDOUT should not be empty
 
-    When I run `wp theme list --name=twentytwelve --field=update_version`
+    When I run `wp theme list --name=p2 --field=update_version`
     And save STDOUT as {UPDATE_VERSION}
 
-    When I run `wp theme update twentytwelve --format=json`
+    When I run `wp theme update p2 --format=json`
     Then STDOUT should contain:
       """
-      [{"name":"twentytwelve","old_version":"1.0","new_version":"{UPDATE_VERSION}","status":"Updated"}]
+      [{"name":"p2","old_version":"1.4.1","new_version":"{UPDATE_VERSION}","status":"Updated"}]
       """
 
-    When I run `wp theme install --force twentytwelve --version=1.0`
+    When I run `wp theme install --force p2 --version=1.4.1`
     Then STDOUT should not be empty
 
-    When I run `wp theme update twentytwelve --format=csv`
+    When I run `wp theme update p2 --format=csv`
     Then STDOUT should contain:
       """
       name,old_version,new_version,status
-      twentytwelve,1.0,{UPDATE_VERSION},Updated
+      p2,1.4.1,{UPDATE_VERSION},Updated
       """
 
   Scenario: Automatically install parent theme for a child theme
     Given a WP install
+    And download:
+      | path                            | url                                                       |
+      | {CACHE_DIR}/sidespied.1.0.3.zip | https://downloads.wordpress.org/theme/sidespied.1.0.3.zip |
 
-    When I try `wp theme status stargazer`
+    When I try `wp theme status espied`
     Then STDERR should contain:
       """
-      Error: The 'stargazer' theme could not be found.
+      Error: The 'espied' theme could not be found.
       """
 
-    When I run `wp theme install buntu`
+    When I run `wp theme install {CACHE_DIR}/sidespied.1.0.3.zip`
     Then STDOUT should contain:
       """
       This theme requires a parent theme. Checking if it is installed
       """
 
-    When I run `wp theme status stargazer`
+    When I run `wp theme status espied`
     Then STDOUT should contain:
       """
-      Theme stargazer details:
+      Theme espied details:
       """
     And STDERR should be empty

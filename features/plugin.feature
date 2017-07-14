@@ -95,8 +95,11 @@ Feature: Manage WordPress plugins
 
   Scenario: Install a plugin, activate, then force install an older version of the plugin
     Given a WP install
+    And download:
+      | path                          | url                                                      |
+      | {CACHE_DIR}/akismet.2.5.7.zip | https://downloads.wordpress.org/plugin/akismet.2.5.7.zip |
 
-    When I run `wp plugin install akismet --version=2.5.7 --force`
+    When I run `wp plugin install {CACHE_DIR}/akismet.2.5.7.zip --version=2.5.7 --force`
     Then STDOUT should not be empty
 
     When I run `wp plugin list --name=akismet --field=update_version`
@@ -285,12 +288,15 @@ Feature: Manage WordPress plugins
 
   Scenario: Install a plugin when directory doesn't yet exist
     Given a WP install
+    And download:
+      | path                          | url                                                      |
+      | {CACHE_DIR}/akismet.2.5.7.zip | https://downloads.wordpress.org/plugin/akismet.2.5.7.zip |
 
     When I run `rm -rf wp-content/plugins`
     And I run `if test -d wp-content/plugins; then echo "fail"; fi`
     Then STDOUT should be empty
 
-    When I run `wp plugin install akismet --activate`
+    When I run `wp plugin install {CACHE_DIR}/akismet.2.5.7.zip --activate`
     Then STDOUT should not be empty
 
     When I run `wp plugin list --status=active --fields=name,status`
@@ -401,8 +407,11 @@ Feature: Manage WordPress plugins
 
   Scenario: Uninstall a plugin without deleting
     Given a WP install
+    And download:
+      | path                          | url                                                      |
+      | {CACHE_DIR}/akismet.2.5.7.zip | https://downloads.wordpress.org/plugin/akismet.2.5.7.zip |
 
-    When I run `wp plugin install akismet --version=2.5.7 --force`
+    When I run `wp plugin install {CACHE_DIR}/akismet.2.5.7.zip --version=2.5.7 --force`
     Then STDOUT should not be empty
 
     When I run `wp plugin uninstall akismet --skip-delete`
@@ -450,8 +459,11 @@ Feature: Manage WordPress plugins
 
   Scenario: Install a plugin, then update to a specific version of that plugin
     Given a WP install
+    And download:
+      | path                          | url                                                      |
+      | {CACHE_DIR}/akismet.2.5.7.zip | https://downloads.wordpress.org/plugin/akismet.2.5.7.zip |
 
-    When I run `wp plugin install akismet --version=2.5.7 --force`
+    When I run `wp plugin install {CACHE_DIR}/akismet.2.5.7.zip --version=2.5.7 --force`
     Then STDOUT should not be empty
 
     When I run `wp plugin update akismet --version=2.6.0`
