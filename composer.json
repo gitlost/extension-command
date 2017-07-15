@@ -23,14 +23,20 @@
         },
         "files": [ "extension-command.php" ]
     },
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/gitlost/wp-cli.git"
+		}
+	],
     "require": {},
     "require-dev": {
         "behat/behat": "~2.5",
-        "wp-cli/wp-cli": "*"
+        "wp-cli/wp-cli": "dev-github-api"
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.x-dev"
+            "dev-themecache": "1.x-dev"
         },
 		"bundled": true,
         "commands": [
