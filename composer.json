@@ -26,11 +26,11 @@
     "require": {},
     "require-dev": {
         "behat/behat": "~2.5",
-        "wp-cli/wp-cli": "dev-master"
+        "wp-cli/wp-cli": "*"
     },
     "extra": {
         "branch-alias": {
-            "dev-themecache": "1.x-dev"
+            "dev-master": "1.x-dev"
         },
 		"bundled": true,
         "commands": [
