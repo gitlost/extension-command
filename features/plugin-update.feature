@@ -72,7 +72,10 @@ Feature: Update WordPress plugins
 
   Scenario: Update a plugin to its latest patch release
     Given a WP install
-    And I run `wp plugin install --force akismet --version=2.5.4`
+    And download:
+      | path                          | url                                                      |
+      | {CACHE_DIR}/akismet.2.5.4.zip | https://downloads.wordpress.org/plugin/akismet.2.5.4.zip |
+    And I run `wp plugin install --force {CACHE_DIR}/akismet.2.5.4.zip --version=2.5.4`
 
     When I run `wp plugin update akismet --patch`
     Then STDOUT should contain:
@@ -88,7 +91,10 @@ Feature: Update WordPress plugins
 
   Scenario: Update a plugin to its latest minor release
     Given a WP install
-    And I run `wp plugin install --force akismet --version=2.5.4`
+    And download:
+      | path                          | url                                                      |
+      | {CACHE_DIR}/akismet.2.5.4.zip | https://downloads.wordpress.org/plugin/akismet.2.5.4.zip |
+    And I run `wp plugin install --force {CACHE_DIR}/akismet.2.5.4.zip --version=2.5.4`
 
     When I run `wp plugin update akismet --minor`
     Then STDOUT should contain:
