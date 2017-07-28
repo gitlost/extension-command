@@ -1,3 +1,3 @@
 default:
   paths:
-    bootstrap: 'vendor/wp-cli/wp-cli/features/bootstrap'
+    bootstrap: 'features/bootstrap'
